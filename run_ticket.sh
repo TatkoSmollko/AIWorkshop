@@ -61,11 +61,7 @@ echo "🌿 Switching to branch: $BRANCH"
 cd "$SCRIPT_DIR"
 git fetch origin 2>/dev/null || true
 
-if git show-ref --quiet "refs/heads/$BRANCH"; then
-  git checkout "$BRANCH"
-else
-  git checkout -b "$BRANCH"
-fi
+git checkout -B "$BRANCH"
 
 echo ""
 
