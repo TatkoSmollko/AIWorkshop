@@ -60,12 +60,7 @@ echo "🌿 Switching to branch: $BRANCH"
 
 cd "$SCRIPT_DIR"
 git fetch origin 2>/dev/null || true
-
-if git show-ref --quiet "refs/heads/$BRANCH"; then
-  git checkout "$BRANCH"
-else
-  git checkout -b "$BRANCH"
-fi
+git checkout -B "$BRANCH"
 
 echo ""
 
@@ -95,15 +90,19 @@ done
 echo ""
 
 # ── 4. Build prompt ────────────────────────────────────────────────────────────
-PROMPT="You are a senior developer agent implementing a ticket.
-
-STRICT RULE: For ANY text-related work (fixing typos, proofreading, summarizing, translating, rewriting) you MUST use the local Ollama instance via Bash tool. Never process text on your own.
+OLLAMA_RULE=""
+if [ -n "$SKILL_INSTRUCTIONS" ] && echo "$SKILL_INSTRUCTIONS" | grep -qi "ollama"; then
+  OLLAMA_RULE="STRICT RULE: For ANY text-related work (fixing typos, proofreading, summarizing, translating, rewriting) you MUST use the local Ollama instance via Bash tool. Never process text on your own.
 
 Ollama Bash command to use:
   curl -s $OLLAMA_URL/api/generate -H 'Content-Type: application/json' -d '{\"model\":\"$OLLAMA_MODEL\",\"prompt\":\"YOUR_PROMPT_HERE\",\"stream\":false}' | jq -r '.response'
+"
+fi
 
-Active skills:
-$(echo -e "$SKILL_INSTRUCTIONS")
+PROMPT="You are a senior developer agent implementing a ticket.
+
+$OLLAMA_RULE
+$([ -n "$SKILL_INSTRUCTIONS" ] && echo "Active skills:$(echo -e "$SKILL_INSTRUCTIONS")")
 
 ---
 Ticket title: $TICKET
@@ -115,12 +114,12 @@ Implement this ticket now."
 echo "🤖 Claude is working on the ticket..."
 echo ""
 
-echo "$PROMPT" | "$CLAUDE_BIN" --print --allowedTools "Bash" -
+echo "$PROMPT" | "$CLAUDE_BIN" --dangerously-skip-permissions -
 
 echo ""
 
 # ── 6. Commit changed files, push, draft PR ────────────────────────────────────
-CHANGED=$(git status --porcelain)
+CHANGED=$(git status --porcelain | grep -v '\.DS_Store')
 
 if [ -z "$CHANGED" ]; then
   echo "ℹ️  No changes to commit."
@@ -130,18 +129,10 @@ fi
 echo "💾 Committing result..."
 git add -A
 
-COMMIT_PROMPT="Write a short git commit message (max 72 chars, imperative) describing: implemented ticket $TICKET - $TICKET_BODY"
-if echo "$SKILL_INSTRUCTIONS" | grep -qi "slovak"; then
-  COMMIT_PROMPT="$COMMIT_PROMPT. The commit message MUST be in Slovak language."
-fi
+COMMIT_MSG=$(echo "Write a short git commit message (max 72 chars, imperative, in English) for: implemented ticket $TICKET - $TICKET_BODY. Reply with ONLY the commit message, nothing else." \
+  | "$CLAUDE_BIN" --print -)
 
-COMMIT_MSG=$(curl -s "$OLLAMA_URL/api/generate" \
-  -H "Content-Type: application/json" \
-  -d "$(jq -n --arg model "$OLLAMA_MODEL" --arg prompt "$COMMIT_PROMPT" \
-    '{model: $model, prompt: $prompt, stream: false}')" \
-  | jq -r '.response' | head -1 | tr -d '"')
-
-[ -z "$COMMIT_MSG" ] && COMMIT_MSG="$TICKET: implementuj ticket"
+[ -z "$COMMIT_MSG" ] && COMMIT_MSG="$TICKET: implement ticket"
 
 git commit -m "$COMMIT_MSG"
 
@@ -155,7 +146,7 @@ PR_URL=$(GITHUB_TOKEN="$GITHUB_TOKEN" gh pr create \
   --body "Closes #$ISSUE_NUMBER" \
   --base main \
   --head "$BRANCH" \
-  --draft 2>/dev/null || gh pr view "$BRANCH" --repo "$REPO" --json url -q '.url')
+  --draft 2>/dev/null || GITHUB_TOKEN="$GITHUB_TOKEN" gh pr view "$BRANCH" --repo "$REPO" --json url -q '.url')
 
 echo ""
 echo "✅ Done! Draft PR: $PR_URL"
