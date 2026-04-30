@@ -1,0 +1,20 @@
+- co su skilly ? 
+	- ReactDeveloper, Pridavac FNKeys, backendDebugger, frontendDebugger
+
+- ako ma vyzerat struktura skill fileu ? Kde definovat skill ? ako ho pouzivat.
+
+- spravne nastavenie celeho promptu, aby pouzival to, co chceme - dolezite presne nastavovanie promptov - premyslat nad jasnymi prikazmi
+
+
+
+vygenerovanie skillov pre nejakeho agenta
+
+- vygenerovanie skillu na preklad outputu do slovenciny
+- vygenerovanie skillu BASICS na to, aby vsetky gitMessages commitoval iba v slovencine
+
+- vytvorenie automatizovaneho nacitania skillov z externeho repozitara/z fileu
+
+implementacia ticketu pomocou skillu - vyuzitie toolu ollama 
+co vsetko na to potrebujem mat spustene, kde najst modely, ktore sa pouziju atd. 
+vyuzitie externej ollamy pre spracovanie textu
+vytvorenie pullrequestu pomocou pr
