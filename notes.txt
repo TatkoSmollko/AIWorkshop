@@ -1,9 +1,11 @@
 - co su skilly ? 
-	- ReactDeveloper, Pridavac FNKeys, backendDebugger, frontendDebugger
+	- ReactDeveloper, Pridavac FNKeys, backendDebugger, frontendDebugger, caveMan
 
 - ako ma vyzerat struktura skill fileu ? Kde definovat skill ? ako ho pouzivat.
 
 - spravne nastavenie celeho promptu, aby pouzival to, co chceme - dolezite presne nastavovanie promptov - premyslat nad jasnymi prikazmi
+
+
 
 
 
