@@ -123,23 +123,28 @@ echo "$PROMPT" | "$CLAUDE_BIN" --print --permission-mode bypassPermissions -
 
 echo ""
 
-# ── 6. Commit changed files, push, draft PR ────────────────────────────────────
-CHANGED=$(git status --porcelain | grep -v '\.DS_Store')
+# ── 6. Commit uncommitted changes if any ──────────────────────────────────────
+CHANGED=$(git status --porcelain | grep -v '\.DS_Store' || true)
 
-if [ -z "$CHANGED" ]; then
-  echo "ℹ️  No changes to commit."
-  exit 0
+if [ -n "$CHANGED" ]; then
+  echo "💾 Committing result..."
+  git add -A
+
+  COMMIT_MSG=$(echo "Write a short git commit message (max 72 chars, imperative, in English) for: implemented ticket $TICKET - $TICKET_BODY. Reply with ONLY the commit message, nothing else." \
+    | "$CLAUDE_BIN" --print -)
+
+  [ -z "$COMMIT_MSG" ] && COMMIT_MSG="$TICKET: implement ticket"
+
+  git commit -m "$COMMIT_MSG"
 fi
 
-echo "💾 Committing result..."
-git add -A
+# ── 7. Push and draft PR if branch has commits ahead of main ──────────────────
+AHEAD=$(git rev-list main.."$BRANCH" --count 2>/dev/null || echo 0)
 
-COMMIT_MSG=$(echo "Write a short git commit message (max 72 chars, imperative, in English) for: implemented ticket $TICKET - $TICKET_BODY. Reply with ONLY the commit message, nothing else." \
-  | "$CLAUDE_BIN" --print -)
-
-[ -z "$COMMIT_MSG" ] && COMMIT_MSG="$TICKET: implement ticket"
-
-git commit -m "$COMMIT_MSG"
+if [ "$AHEAD" -eq 0 ]; then
+  echo "ℹ️  No commits ahead of main, nothing to push."
+  exit 0
+fi
 
 echo "🚀 Pushing branch..."
 git push -u "https://$GITHUB_TOKEN@github.com/$REPO.git" "$BRANCH"
