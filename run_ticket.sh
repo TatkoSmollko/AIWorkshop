@@ -115,7 +115,7 @@ Implement this ticket now."
 echo "🤖 Claude is working on the ticket..."
 echo ""
 
-echo "$PROMPT" | "$CLAUDE_BIN" --print --allowedTools "Bash" -
+echo "$PROMPT" | "$CLAUDE_BIN" --dangerously-skip-permissions -
 
 echo ""
 
