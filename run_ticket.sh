@@ -60,7 +60,7 @@ echo "🌿 Switching to branch: $BRANCH"
 
 cd "$SCRIPT_DIR"
 git fetch origin 2>/dev/null || true
-git checkout -B "$BRANCH"
+git checkout -B "$BRANCH" main
 
 echo ""
 
@@ -114,7 +114,7 @@ Implement this ticket now."
 echo "🤖 Claude is working on the ticket..."
 echo ""
 
-echo "$PROMPT" | "$CLAUDE_BIN" --dangerously-skip-permissions -
+echo "$PROMPT" | "$CLAUDE_BIN" --print --permission-mode bypassPermissions -
 
 echo ""
 
