@@ -99,10 +99,15 @@ Ollama Bash command to use:
 "
 fi
 
+ACTIVE_SKILLS_BLOCK=""
+if [ -n "$SKILL_INSTRUCTIONS" ]; then
+  ACTIVE_SKILLS_BLOCK="Active skills:$(echo -e "$SKILL_INSTRUCTIONS")"
+fi
+
 PROMPT="You are a senior developer agent implementing a ticket.
 
 $OLLAMA_RULE
-$([ -n "$SKILL_INSTRUCTIONS" ] && echo "Active skills:$(echo -e "$SKILL_INSTRUCTIONS")")
+$ACTIVE_SKILLS_BLOCK
 
 ---
 Ticket title: $TICKET
